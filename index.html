@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MOMA Visualization</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        .year { position: absolute; top: 1rem; left: 1rem; color: white; font-family: monospace; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="year"></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const yearDisplay = document.querySelector('.year');
+        let currentYear = 1929;
+        let particles = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Define cluster centers
+        const clusters = [
+            {x: canvas.width * 0.2, y: canvas.height * 0.3},
+            {x: canvas.width * 0.8, y: canvas.height * 0.3},
+            {x: canvas.width * 0.5, y: canvas.height * 0.7},
+            {x: canvas.width * 0.3, y: canvas.height * 0.6},
+            {x: canvas.width * 0.7, y: canvas.height * 0.6}
+        ];
+
+        const categories = {
+            'Drawings & Prints': { color: 'rgba(70, 130, 180, ', weight: 12561/23450 },
+            'Photography': { color: 'rgba(233, 150, 122, ', weight: 5063/23450 },
+            'Architecture & Design': { color: 'rgba(143, 188, 143, ', weight: 3918/23450 },
+            'Media and Performance': { color: 'rgba(218, 112, 214, ', weight: 1020/23450 },
+            'Painting & Sculpture': { color: 'rgba(255, 215, 0, ', weight: 623/23450 },
+            'Film': { color: 'rgba(255, 99, 71, ', weight: 157/23450 },
+            'Fluxus Collection': { color: 'rgba(176, 196, 222, ', weight: 104/23450 }
+        };
+
+        class Particle {
+            constructor(targetX, targetY) {
+                // Choose category based on weights
+                let rand = Math.random();
+                let sum = 0;
+                this.category = Object.entries(categories).find(([_, data]) => {
+                    sum += data.weight;
+                    return rand <= sum;
+                })[0];
+
+                // Choose cluster
+                const cluster = clusters[Math.floor(Math.random() * clusters.length)];
+                
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.z = 0;
+                this.targetX = cluster.x + (Math.random() - 0.5) * 300;
+                this.targetY = cluster.y + (Math.random() - 0.5) * 300;
+                this.targetZ = 1000;
+                this.vz = Math.random() * 1.5 + 0.5;
+                this.radius = Math.random() * 0.8 + 0.2;
+                this.color = categories[this.category].color;
+                
+                // Add wave motion
+                this.angle = Math.random() * Math.PI * 2;
+                this.waveAmplitude = Math.random() * 20;
+                this.waveSpeed = Math.random() * 0.02;
+            }
+
+            update(time) {
+                if (this.z < this.targetZ) {
+                    this.z += this.vz;
+                    const perspective = 500 / (500 + this.z);
+                    
+                    // Add wave motion to x and y
+                    const wave = Math.sin(this.angle + time * this.waveSpeed) * this.waveAmplitude;
+                    this.x = (this.targetX + wave - canvas.width/2) * perspective + canvas.width/2;
+                    this.y = (this.targetY + wave - canvas.height/2) * perspective + canvas.height/2;
+                }
+                return true; // Never remove particles
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.fillStyle = this.color + '0.8)';
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // works per year 
+        const yearlyData = {
+            1932: 1,
+            1934: 5,
+            1935: 5,
+            1936: 12,
+            1937: 14,
+            1938: 7,
+            1939: 6,
+            1940: 192,
+            1941: 88,
+            1942: 88,
+            1943: 18,
+            1944: 22,
+            1945: 7,
+            1946: 12,
+            1947: 94,
+            1948: 23,
+            1949: 45,
+            1950: 22,
+            1951: 77,
+            1952: 44,
+            1953: 16,
+            1954: 29,
+            1955: 11,
+            1956: 40,
+            1957: 11,
+            1958: 63,
+            1959: 70,
+            1960: 31,
+            1961: 36,
+            1962: 24,
+            1963: 56,
+            1964: 240,
+            1965: 241,
+            1966: 33,
+            1967: 215,
+            1968: 85,
+            1969: 191,
+            1970: 198,
+            1971: 44,
+            1972: 70,
+            1973: 138,
+            1974: 536,
+            1975: 47,
+            1976: 62,
+            1977: 190,
+            1978: 122,
+            1979: 196,
+            1980: 148,
+            1981: 78,
+            1982: 83,
+            1983: 106,
+            1984: 131,
+            1985: 152,
+            1986: 80,
+            1987: 132,
+            1988: 168,
+            1989: 112,
+            1990: 237,
+            1991: 130,
+            1992: 228,
+            1993: 485,
+            1994: 314,
+            1995: 506,
+            1996: 369,
+            1997: 254,
+            1998: 222,
+            1999: 192,
+            2000: 227,
+            2001: 929,
+            2002: 155,
+            2003: 91,
+            2004: 295,
+            2005: 948,
+            2006: 432,
+            2007: 353,
+            2008: 1829,
+            2009: 448,
+            2010: 450,
+            2011: 530,
+            2012: 1246,
+            2013: 530,
+            2014: 713,
+            2015: 698,
+            2016: 768,
+            2017: 407,
+            2018: 991,
+            2019: 470,
+            2020: 207,
+            2021: 559,
+            2022: 411,
+            2023: 240,
+            2024: 251
+        };
+        let time = 0;
+
+        function animate() {
+            time += 0.1;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (currentYear <= 2024) {
+                const count = yearlyData[currentYear];
+                for (let i = 0; i < count * 2; i++) {
+                    particles.push(new Particle());
+                }
+                yearDisplay.textContent = currentYear;
+                currentYear++;
+            }
+
+            particles.forEach(particle => {
+                particle.update(time);
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>MOMA Visualization</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        .year { position: absolute; top: 1rem; left: 1rem; color: white; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="year"></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const yearDisplay = document.querySelector('.year');
+        let currentYear = 1929;
+        let particles = [];
+
+        // Set canvas size
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(targetX, targetY) {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.z = 0;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.targetZ = 1000;
+                this.vz = Math.random() * 2 + 1;
+                this.radius = 2;
+                this.alpha = 0;
+                this.color = Math.random() > 0.5 ? 
+                    'rgba(147, 112, 219, ' : 
+                    'rgba(255, 215, 0, ';
+            }
+
+            update() {
+                this.z += this.vz;
+                const perspective = 500 / (500 + this.z);
+                this.x = (this.targetX - canvas.width/2) * perspective + canvas.width/2;
+                this.y = (this.targetY - canvas.height/2) * perspective + canvas.height/2;
+                this.alpha = Math.min(this.z / 200, 1);
+                return this.z < this.targetZ;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.fillStyle = this.color + this.alpha + ')';
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Yearly data from notebook
+        const yearlyData = {
+            1932: 1,
+            1934: 5,
+            1935: 5,
+            1936: 12,
+            1937: 14,
+            1938: 7,
+            1939: 6,
+            1940: 192,
+            1941: 88,
+            1942: 88,
+            1943: 18,
+            1944: 22,
+            1945: 7,
+            1946: 12,
+            1947: 94,
+            1948: 23,
+            1949: 45,
+            1950: 22,
+            1951: 77,
+            1952: 44,
+            1953: 16,
+            1954: 29,
+            1955: 11,
+            1956: 40,
+            1957: 11,
+            1958: 63,
+            1959: 70,
+            1960: 31,
+            1961: 36,
+            1962: 24,
+            1963: 56,
+            1964: 240,
+            1965: 241,
+            1966: 33,
+            1967: 215,
+            1968: 85,
+            1969: 191,
+            1970: 198,
+            1971: 44,
+            1972: 70,
+            1973: 138,
+            1974: 536,
+            1975: 47,
+            1976: 62,
+            1977: 190,
+            1978: 122,
+            1979: 196,
+            1980: 148,
+            1981: 78,
+            1982: 83,
+            1983: 106,
+            1984: 131,
+            1985: 152,
+            1986: 80,
+            1987: 132,
+            1988: 168,
+            1989: 112,
+            1990: 237,
+            1991: 130,
+            1992: 228,
+            1993: 485,
+            1994: 314,
+            1995: 506,
+            1996: 369,
+            1997: 254,
+            1998: 222,
+            1999: 192,
+            2000: 227,
+            2001: 929,
+            2002: 155,
+            2003: 91,
+            2004: 295,
+            2005: 948,
+            2006: 432,
+            2007: 353,
+            2008: 1829,
+            2009: 448,
+            2010: 450,
+            2011: 530,
+            2012: 1246,
+            2013: 530,
+            2014: 713,
+            2015: 698,
+            2016: 768,
+            2017: 407,
+            2018: 991,
+            2019: 470,
+            2020: 207,
+            2021: 559,
+            2022: 411,
+            2023: 240,
+            2024: 251
+        };
+
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (currentYear <= 2024) {
+                const count = yearlyData[currentYear] || 0;
+                for (let i = 0; i < count/10; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    particles.push(new Particle(x, y));
+                }
+                yearDisplay.textContent = currentYear;
+                currentYear++;
+            }
+
+            particles = particles.filter(particle => {
+                const active = particle.update();
+                particle.draw();
+                return active;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html> -->
